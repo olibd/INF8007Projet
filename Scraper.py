@@ -1,13 +1,30 @@
+import functools
 import html.parser as h
-
+import operator
+import re
 
 class Scraper:
     def __init__(self):
         pass
 
-    def extract_links(self, html: str):
+    def extract_links(self, html: str) -> set:
         parser = LinkHTMLParser()
         parser.feed(html)
+
+        matches = self.__match_unstructured_links__(html)
+        unique_set = set(parser.extracted_links)
+
+        for match in matches:
+            unique_set.add(self.__reduce_to_string__(match))
+
+        return unique_set
+
+    def __match_unstructured_links__(self, html: str) -> list:
+        pattern = re.compile("(((http|https|ftp):\/\/)|)(w{3}\.|)(\w*[\.|-]\w*)(:\d*|)(\/|\S*)*")
+        return pattern.findall(html)
+
+    def __reduce_to_string__(self, tuple):
+        functools.reduce(operator.add, (tuple))
 
 class LinkHTMLParser(h.HTMLParser):
     def __init__(self):
