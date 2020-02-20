@@ -3,9 +3,8 @@ import html.parser as h
 import operator
 import re
 
+
 class Scraper:
-    def __init__(self):
-        pass
 
     def extract_links(self, html: str) -> set:
         parser = LinkHTMLParser()
@@ -15,16 +14,16 @@ class Scraper:
         unique_set = set(parser.extracted_links)
 
         for match in matches:
-            unique_set.add(self.__reduce_to_string__(match))
+            unique_set.add(match)
 
         return unique_set
 
     def __match_unstructured_links__(self, html: str) -> list:
-        pattern = re.compile("(((http|https|ftp):\/\/)|)(w{3}\.|)(\w*[\.|-]\w*)(:\d*|)(\/|\S*)*")
-        return pattern.findall(html)
+        regex = r"\b((http|https|ftp):\/\/)?(w{3}\.)?((\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})|[^-.][a-zA-Z0-9_.-]*[^-]\.[a-zA-Z]{1,24})(:\d*)?((\/\S*)?(\/)?)*"
+        pattern = re.compile(regex)
+        list = [match.group(0) for match in pattern.finditer(html)]
+        return list
 
-    def __reduce_to_string__(self, tuple):
-        functools.reduce(operator.add, (tuple))
 
 class LinkHTMLParser(h.HTMLParser):
     def __init__(self):
@@ -36,7 +35,7 @@ class LinkHTMLParser(h.HTMLParser):
 
     def handle_starttag(self, tag, attrs) -> str:
         try:
-            self.extracted_links.append(self.switch[tag])
+            self.extracted_links.append(self.switch[tag](attrs))
         except:
             print("tag {} not recognized".format(tag))
 
