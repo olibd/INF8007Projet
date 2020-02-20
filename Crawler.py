@@ -3,11 +3,12 @@
 # et éviter de parcourir en double les pages.
 
 import requests
+from urllib.parse import urljoin
 
 
 class Crawler:
 
-    def __init__(self, urls=[], checked={}):
+    def __init__(self, urls: list = [], checked: dict = {}, base_url: str = ""):
         """
         Initialisation du Crawler
 
@@ -16,21 +17,25 @@ class Crawler:
         """
         self.links = urls
         self.checked = checked
+        self.base_url = base_url
         self.responses = []
 
-    def get_status_code(self, item: int) -> tuple:
+    def get_status_code(self, link: str) -> tuple:
         """
         Retourne le couple lien parcouru et status_code [lien, status_code].
         Si le lien n'existe pas OU s'il n'y a pas d'accés à internet, status_code = 0.
         :param item: rang du lien à vérifier
         """
         try:
-            response = requests.head(self.links[item])
-            return self.links[item], response.status_code
+            response = requests.head(link)
+            return link, response.status_code
         except requests.exceptions.ConnectionError:
-            return self.links[item], 0
+            return link, 0
+        except requests.exceptions.InvalidURL:
+            return None
 
-    def get_html(self, link: str) -> str:
+    @staticmethod
+    def get_html(link: str) -> str:
         """
         Retourne le contenu html d'un lien donné
 
@@ -50,8 +55,13 @@ class Crawler:
                 continue
             else:
                 self.checked[link] = i
-                res = self.get_status_code(i)
-                self.responses.append(res)
+                try:
+                    res = self.get_status_code(link)
+                except requests.exceptions.MissingSchema:
+                    res = self.get_status_code(urljoin(self.base_url,link))
+
+                if res != None:
+                    self.responses.append(res)
             i += 1
 
     def get_responses(self) -> list:
