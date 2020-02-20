@@ -33,6 +33,8 @@ class Crawler:
             return link, 0
         except requests.exceptions.InvalidURL:
             return None
+        except requests.exceptions.InvalidSchema:
+            return None
 
     @staticmethod
     def get_html(link: str) -> str:
@@ -54,6 +56,7 @@ class Crawler:
             if link in self.checked:
                 continue
             else:
+                print("checking: {}".format(link))
                 self.checked[link] = i
                 try:
                     res = self.get_status_code(link)
