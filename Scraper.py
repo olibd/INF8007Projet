@@ -3,6 +3,10 @@ import re
 import urllib.parse
 
 
+class NotHTMLException(Exception):
+    pass
+
+
 class Scraper:
 
     def extract_links(self, html: str) -> set:
@@ -15,6 +19,9 @@ class Scraper:
         """
         parser = LinkHTMLParser()
         parser.feed(html)
+        
+        if not parser.is_html_page:
+            raise NotHTMLException()
 
         matches = self.__match_unstructured_links__(html)
         unique_set = set(parser.extracted_links)
@@ -29,7 +36,7 @@ class Scraper:
         Find links not located in anchor tags
         :param html: HTML page in the form of a string
         """
-        regex = r"\b((http|https|ftp):\/\/)?(w{3}\.)?((\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})|[^-.=\[\]][a-zA-Z0-9_.-]*[^-=\]\[]\.[a-zA-Z]{1,24})(:\d*)?((\/\S*)?(\/)?)*"
+        regex = r"\b((http|https|ftp):\/\/)?(w{3}\.)?((\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})|[^-.=\[\]][a-zA-Z0-9_.-]*[^-=\]\[]\.[a-zA-Z]{1,24})(:\d*)?((\/[^\s\"]*)?(\/)?)*"
         pattern = re.compile(regex)
         link_list = [match.group(0) for match in pattern.finditer(html)]
         return link_list
@@ -39,9 +46,11 @@ class LinkHTMLParser(h.HTMLParser):
     def __init__(self):
         super().__init__()
         self.switch = {
-            "a": self.__handle_anchor__
+            "a": self.__handle_anchor__,
+            "html": self.__handle_html__
         }
         self.extracted_links = []
+        self.is_html_page = False
 
     def handle_starttag(self, tag: str, attrs: list):
         """
@@ -50,7 +59,9 @@ class LinkHTMLParser(h.HTMLParser):
         :param attrs:
         """
         try:
-            self.extracted_links.append(self.switch[tag](attrs))
+            link = self.switch[tag](attrs)
+            if link != None:
+                self.extracted_links.append(link)
         except:
             print("tag {} not recognized".format(tag))
 
@@ -64,3 +75,5 @@ class LinkHTMLParser(h.HTMLParser):
                 continue
             else:
                 return attr[1]
+    def __handle_html__(self, attrs):
+        self.is_html_page = True
