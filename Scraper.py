@@ -21,8 +21,8 @@ class Scraper:
     def __match_unstructured_links__(self, html: str) -> list:
         regex = r"\b((http|https|ftp):\/\/)?(w{3}\.)?((\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})|[^-.][a-zA-Z0-9_.-]*[^-]\.[a-zA-Z]{1,24})(:\d*)?((\/\S*)?(\/)?)*"
         pattern = re.compile(regex)
-        list = [match.group(0) for match in pattern.finditer(html)]
-        return list
+        link_list = [match.group(0) for match in pattern.finditer(html)]
+        return link_list
 
 
 class LinkHTMLParser(h.HTMLParser):
@@ -33,15 +33,15 @@ class LinkHTMLParser(h.HTMLParser):
         }
         self.extracted_links = []
 
-    def handle_starttag(self, tag, attrs) -> str:
+    def handle_starttag(self, tag: str, attrs: list):
         try:
             self.extracted_links.append(self.switch[tag](attrs))
         except:
             print("tag {} not recognized".format(tag))
 
-    def __handle_anchor__(self, attrs):
+    def __handle_anchor__(self, attrs) -> str:
         for attr in attrs:
-            if (attr[0] != "href"):
+            if attr[0] != "href":
                 continue
             else:
                 return attr[1]
