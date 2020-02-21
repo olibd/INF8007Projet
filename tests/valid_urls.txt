@@ -1,5 +1,4 @@
-        foo.com/blah_blah
-        www.fo-o.com/blah_blah
+        <html>
         http://foo.com
         http://www.foo.com
         http://foo.com/blah_blah

@@ -8,9 +8,9 @@ class ScraperTest(unittest.TestCase):
     def test_href_link_extraction(self):
         sample_html = open("./url_test_sample.html", "r").read()
         scraper = Scraper()
-        links = scraper.extract_links(sample_html)
+        links = scraper.extract_links(sample_html, "http://baseurl.com")
         self.assertTrue("http://absolute.com" in links)
-        self.assertTrue("relative.html" in links)
+        self.assertTrue("http://baseurl.com/relative.html" in links)
         self.assertTrue("http://foo.com" in links)
 
     def test_unique_link(self):
@@ -24,7 +24,7 @@ class ScraperTest(unittest.TestCase):
         sample_urls = open("./valid_urls.txt", "r").read()
         scraper = Scraper()
         links = scraper.extract_links(sample_urls)
-        self.assertEqual(len(links), 22)
+        self.assertEqual(len(links), 20)
 
     def test_invalid_regex(self):
         sample_urls = open("./invalid_urls.txt", "r").read()
