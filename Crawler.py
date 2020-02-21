@@ -7,30 +7,36 @@ import requests
 
 class Crawler:
 
-    def __init__(self, urls=[], checked={}):
+    def __init__(self, urls: list = [], checked: dict = {}):
         """
         Initialisation du Crawler
 
         :param urls: liste des liens dont on veut vérifier la connexion
         :param checked: dictionnaire des liens dont on a déjà vérifier la connexion
+        :param base_url: use as prefix to relative links present in the list
         """
         self.links = urls
         self.checked = checked
         self.responses = []
 
-    def get_status_code(self, item: int) -> tuple:
+    def get_status_code(self, link: str) -> tuple:
         """
         Retourne le couple lien parcouru et status_code [lien, status_code].
         Si le lien n'existe pas OU s'il n'y a pas d'accés à internet, status_code = 0.
         :param item: rang du lien à vérifier
         """
         try:
-            response = requests.head(self.links[item])
-            return self.links[item], response.status_code
+            response = requests.head(link)
+            return response.status_code
         except requests.exceptions.ConnectionError:
-            return self.links[item], 0
+            return link, 0
+        except requests.exceptions.InvalidURL:
+            return None
+        except requests.exceptions.InvalidSchema:
+            return None
 
-    def get_html(self, link: str) -> str:
+    @staticmethod
+    def get_html(link: str) -> str:
         """
         Retourne le contenu html d'un lien donné
 
@@ -42,17 +48,19 @@ class Crawler:
     def crawl(self):
         """
         On parcours les liens et on check leur status_code (si cela n'a pas été fait).
-        On créé un dictionnaire des liens parcourus, self.checked = {'lien1' : 0, 'lien2' : 1, ...}, pour éviter les doublons.
+        On créé un dictionnaire des liens parcourus, self.checked = {'lien1' : 200, 'lien2' : 404, ...}, pour éviter de parcourir en double.
         """
-        i = 0
         for link in self.links:
             if link in self.checked:
-                continue
+                print("already checked out {}, using cached response".format(link))
+                self.responses.append((link, self.checked[link]))
             else:
-                self.checked[link] = i
-                res = self.get_status_code(i)
-                self.responses.append(res)
-            i += 1
+                print("checking: {}".format(link))
+                res = self.get_status_code(link)
+                self.checked[link] = res
+
+                if res != None:
+                    self.responses.append((link, res))
 
     def get_responses(self) -> list:
         """
@@ -65,20 +73,3 @@ class Crawler:
         Retourne dictionnaire des liens DEJA parcourus
         """
         return self.checked
-
-
-# Test du Crawler
-
-links = ["https://www.python.org/", "https://www.google.com/", "https://www.CeLienNeMarchePas.com/",
-         "http://www.dianping.com/promo/208721#mod=4", "https://www.google.com/"]
-
-crawler1 = Crawler(links)
-crawler1.crawl()
-print(crawler1.get_responses())
-
-list_checked = crawler1.get_checked()
-crawler2 = Crawler(links, list_checked)
-print(crawler2.get_responses())
-
-# print(crawler.get_html("https://www.python.org/"))
-# print(crawler.get_checked())
