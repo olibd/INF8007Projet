@@ -20,7 +20,7 @@ class Scraper:
         """
         parser = LinkHTMLParser()
         parser.feed(html)
-        
+
         if not parser.is_html_page:
             raise NotHTMLException()
 
@@ -77,5 +77,6 @@ class LinkHTMLParser(h.HTMLParser):
                 continue
             else:
                 return attr[1]
+
     def __handle_html__(self, attrs):
         self.is_html_page = True

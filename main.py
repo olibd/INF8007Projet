@@ -1,10 +1,11 @@
 import json
+from urllib import parse
 
 from INF8007Projet.Crawler import Crawler
 from INF8007Projet.Scraper import Scraper, NotHTMLException
-from urllib import parse
 
 base_url = "https://spacejam.com"
+
 
 def main():
     link_status_report = {}
@@ -37,12 +38,13 @@ def recursive_check(input_url: str, link_status_report: dict, checked_links: dic
     for link in valid_links:
         if link[0] in link_status_report.keys():
             continue
-        if parse.urlparse(base_url).netloc in link[0]: #crawl only links on the same domain
+        if parse.urlparse(base_url).netloc in link[0]:  # crawl only links on the same domain
             try:
                 recursive_check(link[0], link_status_report, crawler.get_checked())
             except NotHTMLException:
                 print("link is not html page, skipping...")
                 pass
+
 
 if __name__ == '__main__':
     main()
