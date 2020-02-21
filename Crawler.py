@@ -3,21 +3,20 @@
 # et éviter de parcourir en double les pages.
 
 import requests
-from urllib.parse import urljoin
 
 
 class Crawler:
 
-    def __init__(self, urls: list = [], checked: dict = {}, base_url: str = ""):
+    def __init__(self, urls: list = [], checked: dict = {}):
         """
         Initialisation du Crawler
 
         :param urls: liste des liens dont on veut vérifier la connexion
         :param checked: dictionnaire des liens dont on a déjà vérifier la connexion
+        :param base_url: use as prefix to relative links present in the list
         """
         self.links = urls
         self.checked = checked
-        self.base_url = base_url
         self.responses = []
 
     def get_status_code(self, link: str) -> tuple:
@@ -28,7 +27,7 @@ class Crawler:
         """
         try:
             response = requests.head(link)
-            return link, response.status_code
+            return response.status_code
         except requests.exceptions.ConnectionError:
             return link, 0
         except requests.exceptions.InvalidURL:
@@ -49,23 +48,19 @@ class Crawler:
     def crawl(self):
         """
         On parcours les liens et on check leur status_code (si cela n'a pas été fait).
-        On créé un dictionnaire des liens parcourus, self.checked = {'lien1' : 0, 'lien2' : 1, ...}, pour éviter les doublons.
+        On créé un dictionnaire des liens parcourus, self.checked = {'lien1' : 200, 'lien2' : 404, ...}, pour éviter de parcourir en double.
         """
-        i = 0
         for link in self.links:
             if link in self.checked:
-                continue
+                print("already checked out {}, using cached response".format(link))
+                self.responses.append((link, self.checked[link]))
             else:
                 print("checking: {}".format(link))
-                self.checked[link] = i
-                try:
-                    res = self.get_status_code(link)
-                except requests.exceptions.MissingSchema:
-                    res = self.get_status_code(urljoin(self.base_url,link))
+                res = self.get_status_code(link)
+                self.checked[link] = res
 
                 if res != None:
-                    self.responses.append(res)
-            i += 1
+                    self.responses.append((link, res))
 
     def get_responses(self) -> list:
         """
