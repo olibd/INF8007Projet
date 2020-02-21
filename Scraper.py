@@ -36,7 +36,7 @@ class Scraper:
         Find links not located in anchor tags
         :param html: HTML page in the form of a string
         """
-        regex = r"\b((http|https|ftp):\/\/)?(w{3}\.)?((\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})|[^-.=\[\]][a-zA-Z0-9_.-]*[^-=\]\[]\.[a-zA-Z]{1,24})(:\d*)?((\/[^\s\"]*)?(\/)?)*"
+        regex = r"\b((http|https|ftp):\/\/)(w{3}\.)?((\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})|[^-.=\[\]][a-zA-Z0-9_.-]*[^-=\]\[]\.[a-zA-Z]{1,24})(:\d*)?((\/[^\s\"]*)?(\/)?)*"
         pattern = re.compile(regex)
         link_list = [match.group(0) for match in pattern.finditer(html)]
         return link_list
