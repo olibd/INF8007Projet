@@ -19,7 +19,7 @@ class Crawler:
         self.checked = checked
         self.responses = []
 
-    def get_status_code(self, link: str) -> tuple:
+    def get_status_code(self, link: str) -> int:
         """
         Retourne le couple lien parcouru et status_code [lien, status_code].
         Si le lien n'existe pas OU s'il n'y a pas d'accés à internet, status_code = 0.
@@ -29,7 +29,7 @@ class Crawler:
             response = requests.head(link)
             return response.status_code
         except requests.exceptions.ConnectionError:
-            return link, 0
+            return 0
         except requests.exceptions.InvalidURL:
             return None
         except requests.exceptions.InvalidSchema:
