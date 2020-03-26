@@ -4,6 +4,9 @@ from Scraper import Scraper, NotHTMLException
 from urllib import parse
 import sys
 
+from INF8007Projet.Crawler import Crawler
+from INF8007Projet.Scraper import Scraper, NotHTMLException
+
 base_url = "https://spacejam.com"
 
 
@@ -17,6 +20,8 @@ base_url = "https://spacejam.com"
 # Argument fichier local : fichier
 
 def main():
+    stdin = sys.stdin.read()
+    url, file, stdin, stdinval = None
     link_status_report = {}
     dict_arg = {}
     # Création d'un dictionnaire pour gérer les arguments
@@ -26,6 +31,28 @@ def main():
         except IndexError:
             print("Il manque un argument")      # Chaque argument doit avoir un nom et une valeur
             sys.exit()
+
+    if stdin is not None:
+        if stdinval.val == "html":
+            scrape_and_crawl(stdin, "", link_status_report, {})
+        elif stdinval.val == "filelist":
+            all_checked_links = {}
+            for file in stdin:
+                with open(file, 'r') as f:
+                    scrape_and_crawl(f.read(), file, link_status_report, all_checked_links)
+        elif stdinval.val == "urllist":
+            all_checked_links = {}
+            for url in stdin:
+                recursive_check(url, link_status_report, all_checked_links, base_url=url)
+    elif url is not None:
+        recursive_check(url, link_status_report, {}, base_url=url)
+    elif file is not None:
+        with open(file, 'r') as f:
+            scrape_and_crawl(f.read(), file, link_status_report, {})
+
+    with open('./link_status_report.json', 'w') as file:
+        print(link_status_report)
+        json.dump(link_status_report, file)
 
     # Gestion de la variable crawling_state
     try:
@@ -57,34 +84,22 @@ def main():
             print("Il n'y a pas assez d'argument ou typo dans le nom de l'argument")
         sys.exit()
 
-
-    # recursive_check(input_url=base_url, input_file="", link_status_report=link_status_report,
-    #                 crawling_state=True, checked_links={})
-    # with open('./link_status_report.json', 'w') as file:
-    #     print(link_status_report)
-    #     json.dump(link_status_report, file)
-
-
-def recursive_check(input_url: str, input_file: str, crawling_state: bool, link_status_report: dict,
-                    checked_links: dict):
+def recursive_check(input_url: str, link_status_report: dict, all_checked_links: dict, base_url: str = "", crawling_state: bool = True):
     """
     Identify all the links in the page at the input url and recursively
     checks their status, and crawl those who are on the same domain as
     the base_url
+    :param base_url:
+    :param all_checked_links:
     :param crawling_state: Activer/ Désactiver le Crawling
-    :param checked_links:
-    :param input_file:
     :param input_url:
     :param link_status_report:
     """
+    print(input_url)
+    input_page = Crawler.get_html(input_url)
+    newly_checked_links, all_checked_links = scrape_and_crawl(input_page, input_url, link_status_report, all_checked_links)
 
-    scraper = Scraper()
-    links = list(scraper.extract_links(input_page, input_url))
-    crawler = Crawler(urls=links, checked=checked_links)
-    crawler.crawl()
-    checked_links = crawler.get_responses()
-
-    link_status_report[input_url] = checked_links
+    valid_links = filter(lambda link: link[1] == 200, newly_checked_links)
 
     if crawling_state is True:
         valid_links = filter(lambda link: link[1] == 200, checked_links)
@@ -99,6 +114,16 @@ def recursive_check(input_url: str, input_file: str, crawling_state: bool, link_
                 except NotHTMLException:
                     print("link is not html page, skipping...")
                 pass
+
+
+def scrape_and_crawl(input_page: str, file_path: str, link_status_report: {}, all_checked_links: {}):
+    scraper = Scraper()
+    links = list(scraper.extract_links(input_page, file_path))
+    crawler = Crawler(urls=links, checked=all_checked_links)
+    crawler.crawl()
+    checked_links = crawler.get_responses()
+    link_status_report[file_path] = checked_links
+    return checked_links, crawler.get_checked()
 
 
 if __name__ == '__main__':
