@@ -3,25 +3,61 @@ from Crawler import Crawler
 from Scraper import Scraper, NotHTMLException
 from urllib import parse
 import sys
+
 base_url = "https://spacejam.com"
+
 
 # input_stdin: Page HTML à Crawler OU liste de sites Web à vérifier OU liste de fichiers à vérifier
 
-# Type argument possibles :
+# Type argument possibles pour std:in:
 # - html
 # - websites
 # - files
+# Argument url : url
+# Argument fichier local : fichier
 
 def main():
     link_status_report = {}
-    input_stdin = sys.argv[1]
-    type_stdin = sys.argv[2]
-    if type_stdin == 'html':
-        # page html à Crawler
-    elif type_stdin == 'websites':
-        # liste de sites web à vérifier
-    elif type_stdin == 'files':
-        # liste de fichiers à vérifier
+    dict_arg = {}
+    # Création d'un dictionnaire pour gérer les arguments
+    for i in range(1, len(sys.argv), 2):
+        try:
+            dict_arg[sys.argv[i]] = sys.argv[i+1]
+        except IndexError:
+            print("Il manque un argument")      # Chaque argument doit avoir un nom et une valeur
+            sys.exit()
+
+    # Gestion de la variable crawling_state
+    try:
+        if dict_arg['crawling'] == 'true' or dict_arg['crawling'] == 'True':
+            crawling_state = True
+        elif dict_arg['crawling'] == 'false' or dict_arg['crawling'] == 'False':
+            crawling_state = False
+        else:
+            print("Quel est l'état du Crawling ? (True or False)")
+            sys.exit()
+    except KeyError:
+        print("Il manque l'argument 'crawling' ")
+        sys.exit()
+
+    # Gestion de l'input du logiciel
+    if 'url' in dict_arg and 'fichier' not in dict_arg and 'stdin' not in dict_arg:
+        input_url = dict_arg['url']
+        print("Url : ", input_url)
+    elif 'fichier' in dict_arg and 'stdin' not in dict_arg and 'url' not in dict_arg:
+        input_file = dict_arg['fichier']
+        print("File : ", input_file)
+    elif 'stdin' in dict_arg and 'fichier' not in dict_arg and 'url' not in dict_arg:
+        type_stdin = dict_arg['stdin']
+        print("Type du stdin : ", type_stdin)
+    else:
+        if len(dict_arg) > 2:
+            print("Il y a trop d'arguments")
+        else:
+            print("Il n'y a pas assez d'argument ou typo dans le nom de l'argument")
+        sys.exit()
+
+
     # recursive_check(input_url=base_url, input_file="", link_status_report=link_status_report,
     #                 crawling_state=True, checked_links={})
     # with open('./link_status_report.json', 'w') as file:
@@ -56,7 +92,7 @@ def recursive_check(input_url: str, input_file: str, crawling_state: bool, link_
         for link in valid_links:
             if link[0] in link_status_report.keys():
                 continue
-            if parse.urlparse(base_url).netloc in link[0]: # Crawl only links on the same domain
+            if parse.urlparse(base_url).netloc in link[0]:  # Crawl only links on the same domain
                 try:
                     recursive_check(input_url=link[0], link_status_report=link_status_report, crawling_state=True,
                                     checked_links=crawler.get_checked())
@@ -67,6 +103,3 @@ def recursive_check(input_url: str, input_file: str, crawling_state: bool, link_
 
 if __name__ == '__main__':
     main()
-
-
-
