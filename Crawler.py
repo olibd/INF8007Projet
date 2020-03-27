@@ -7,23 +7,27 @@ import requests
 
 class Crawler:
 
-    def __init__(self, urls: list = [], checked: dict = {}):
+    def __init__(self, urls=None, checked=None):
         """
         Initialisation du Crawler
 
         :param urls: liste des liens dont on veut vérifier la connexion
         :param checked: dictionnaire des liens dont on a déjà vérifier la connexion
-        :param base_url: use as prefix to relative links present in the list
         """
+        if checked is None:
+            checked = {}
+        if urls is None:
+            urls = []
         self.links = urls
         self.checked = checked
         self.responses = []
 
+    # Fonction pure
     def get_status_code(self, link: str) -> int:
         """
         Retourne le couple lien parcouru et status_code [lien, status_code].
         Si le lien n'existe pas OU s'il n'y a pas d'accés à internet, status_code = 0.
-        :param item: rang du lien à vérifier
+        :param link: lien à vérifier
         """
         try:
             response = requests.head(link)
@@ -35,8 +39,8 @@ class Crawler:
         except requests.exceptions.InvalidSchema:
             return None
 
-    @staticmethod
-    def get_html(link: str) -> str:
+    # Fonction pure
+    def get_html(self, link: str) -> str:
         """
         Retourne le contenu html d'un lien donné
 
@@ -59,7 +63,7 @@ class Crawler:
                 res = self.get_status_code(link)
                 self.checked[link] = res
 
-                if res != None:
+                if res is not None:
                     self.responses.append((link, res))
 
     def get_responses(self) -> list:
