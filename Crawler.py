@@ -7,7 +7,7 @@ import requests
 
 class Crawler:
 
-    def __init__(self, urls=None, checked=None):
+    def __init__(self, urls: list = [], checked: dict = {}):
         """
         Initialisation du Crawler
 
@@ -43,7 +43,6 @@ class Crawler:
     def get_html(self, link: str) -> str:
         """
         Retourne le contenu html d'un lien donné
-
         :param link: Lien https dont on veut récupérer le code html
         """
         html = requests.get(link).text

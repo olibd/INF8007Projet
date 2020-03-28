@@ -22,41 +22,42 @@ def main():
     # Création d'un dictionnaire pour gérer les arguments
     for i in range(1, len(sys.argv), 2):
         try:
-            dict_arg[sys.argv[i]] = sys.argv[i+1]
+            dict_arg[sys.argv[i]] = sys.argv[i + 1]
         except IndexError:
-            print("Il manque un argument")      # Chaque argument doit avoir un nom et une valeur
+            sys.stderr.write("Il manque le nom ou la valeur d'un argument")  # Chaque argument doit avoir un nom et une valeur
             sys.exit()
-
     # Gestion de la variable crawling_state
+    # Si pas d'argument spécifié, crawling_state = True
     try:
         if dict_arg['crawling'] == 'true' or dict_arg['crawling'] == 'True':
             crawling_state = True
         elif dict_arg['crawling'] == 'false' or dict_arg['crawling'] == 'False':
             crawling_state = False
         else:
-            print("Quel est l'état du Crawling ? (True or False)")
+            sys.stderr.write("Erreur : valeur variable crawling (true or false). Valeur prise par défaut : True")
+        if len(dict_arg) > 2:
+            sys.stderr.write("Erreur: Trop d'inputs")
+        elif len(dict_arg) == 1:
+            sys.stderr.write("Erreur: Pas d'inputs")
             sys.exit()
     except KeyError:
-        print("Il manque l'argument 'crawling' ")
-        sys.exit()
+        if len(dict_arg) > 1:
+            sys.stderr.write("Erreur: Trop d'inputs")
+        sys.stderr.write("Erreur : variable crawling. Valeur prise par défaut : True")
 
     # Gestion de l'input du logiciel
-    if 'url' in dict_arg and 'fichier' not in dict_arg and 'stdin' not in dict_arg:
+    if 'url' in dict_arg:
         input_url = dict_arg['url']
         print("Url : ", input_url)
-    elif 'fichier' in dict_arg and 'stdin' not in dict_arg and 'url' not in dict_arg:
+    elif 'fichier' in dict_arg:
         input_file = dict_arg['fichier']
         print("File : ", input_file)
-    elif 'stdin' in dict_arg and 'fichier' not in dict_arg and 'url' not in dict_arg:
+    elif 'stdin' in dict_arg:
         type_stdin = dict_arg['stdin']
         print("Type du stdin : ", type_stdin)
     else:
-        if len(dict_arg) > 2:
-            print("Il y a trop d'arguments")
-        else:
-            print("Il n'y a pas assez d'argument ou typo dans le nom de l'argument")
+        sys.stderr.write("Erreur: nom variable d'entrée (url ou fichier ou stdin)")
         sys.exit()
-
 
     # recursive_check(input_url=base_url, input_file="", link_status_report=link_status_report,
     #                 crawling_state=True, checked_links={})
