@@ -6,14 +6,14 @@ from Crawler import Crawler
 from Scraper import Scraper, NotHTMLException
 
 
-# input_stdin: Page HTML à Crawler OU liste de sites Web à vérifier OU liste de fichiers à vérifier
+# input stdin: Page HTML à Crawler OU liste de sites Web à vérifier OU liste de fichiers à vérifier
 
 # Type argument possibles pour std:in:
 # - html
-# - websites
-# - files
+# - urllist
+# - filelist
 # Argument url : url
-# Argument fichier local : fichier
+# Argument fichier local : file
 
 def main():
     url = None
@@ -24,11 +24,12 @@ def main():
     # Création d'un dictionnaire pour gérer les arguments
     for i in range(1, len(sys.argv), 2):
         try:
-            dict_arg[sys.argv[i]] = sys.argv[i + 1]
+            if sys.argv[i] == "help":
+                dict_arg[sys.argv[i]] = 0
+            else:
+                dict_arg[sys.argv[i]] = sys.argv[i + 1]
         except IndexError:
-            print("Il manque un argument, chaque argument doit avoir un nom et une valeur")
-            print_help()
-            sys.exit()
+            error_print("Il manque un argument, chaque argument doit avoir un nom et une valeur")
 
     # Gestion de l'input du logiciel
     if "help" in dict_arg:
@@ -44,12 +45,9 @@ def main():
             crawling_state = check_crawling_state(dict_arg)
     else:
         if len(dict_arg) > 2:
-            print("Il y a trop d'arguments")
-            print_help()
+            error_print("Il y a trop d'arguments")
         else:
-            print("Il n'y a pas assez d'argument ou typo dans le nom de l'argument")
-            print_help()
-        sys.exit()
+            error_print("Il n'y a pas assez d'argument ou typo dans le nom de l'argument")
 
     if stdin is not None:
         stdinvalue = sys.stdin.read()
@@ -109,9 +107,7 @@ def check_crawling_state(dict_arg):
         elif dict_arg['crawling'] == 'false' or dict_arg['crawling'] == 'False':
             crawling_state = False
         else:
-            print("Quel est l'état du Crawling ? (True or False)")
-            print_help()
-            sys.exit()
+            error_print("Quel est l'état du Crawling ? (True or False)")
     except KeyError:
         crawling_state = True
     return crawling_state
@@ -160,6 +156,12 @@ def scrape_and_crawl(input_page: str, file_path: str, link_status_report: dict =
     checked_links = crawler.get_responses()
     link_status_report[file_path] = checked_links
     return checked_links, crawler.get_checked()
+
+
+def error_print(*args, **kwargs):
+    print(*args, file=sys.stderr, **kwargs)
+    print_help()
+    sys.exit(1)
 
 
 if __name__ == '__main__':
