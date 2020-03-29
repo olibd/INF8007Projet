@@ -12,5 +12,5 @@ list_checked = crawler1.get_checked()
 crawler2 = Crawler(links, list_checked)
 print(crawler2.get_responses())
 
-#print(crawler.get_html("https://www.python.org/"))
-#print(crawler.get_checked())
+# print(crawler.get_html("https://www.python.org/"))
+# print(crawler.get_checked())

@@ -28,8 +28,9 @@ class Scraper:
         anchor_matches = set(parser.extracted_links)
         relative_links = anchor_matches.difference(absolute_links)
 
-        for relative_link in relative_links:
-            absolute_links.add(urljoin(base_url, relative_link))
+        if base_url is not None:
+            for relative_link in relative_links:
+                absolute_links.add(urljoin(base_url, relative_link))
 
         return absolute_links
 
