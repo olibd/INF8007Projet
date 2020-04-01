@@ -84,7 +84,7 @@ def print_help():
     print("main.py stdin html|filelist|urllist:")
     print("   echo [\\\"https://spacejam.com\\\"] | python main.py stdin urllist")
     print("   echo [\\\"./tests/spacejam.html\\\"] | python main.py stdin filelist")
-    print("   echo \<html\>\<a href=\\\"https://spacejam.com\\\"\>\</html\> | python main.py stdin html")
+    print("   python main.py stdin html < ./tests/spacejam.html")
     print("----------------------------------------------")
     print("Parameter details:")
     print("help -> shows this message")
