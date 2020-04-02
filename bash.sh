@@ -1,4 +1,4 @@
-echo "Usage: cmd [-u] git url [-p] port. For best result execute this script within the project directory."
+echo "Usage: bash.sh [-u] git_url [-p] port. You should execute this script within the project directory."
 
 while getopts ":u:p:" opt; do
   case ${opt} in
