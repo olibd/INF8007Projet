@@ -57,7 +57,8 @@ class Crawler:
     def crawl(self):
         """
         On parcours les liens et on check leur status_code (si cela n'a pas été fait).
-        On créé un dictionnaire des liens parcourus, self.checked = {'lien1' : 200, 'lien2' : 404, ...}, pour éviter de parcourir en double.
+        On créé un dictionnaire des liens parcourus, self.checked = {'lien1' : 200, 'lien2' : 404, ...}, pour éviter de
+        parcourir en double.
         """
         for link in self.links:
             if link in self.checked:

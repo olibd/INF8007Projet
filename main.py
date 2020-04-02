@@ -20,8 +20,9 @@ def main():
     file = None
     stdin = None
     link_status_report = {}
-    dict_arg = {}
+
     # Création d'un dictionnaire pour gérer les arguments
+    dict_arg = {}
     for i in range(1, len(sys.argv), 2):
         try:
             if sys.argv[i] == "help":
@@ -49,6 +50,7 @@ def main():
         else:
             error_print("Il n'y a pas assez d'argument ou typo dans le nom de l'argument")
 
+    # Scrape and crawl based on input type
     if stdin is not None:
         stdinvalue = sys.stdin.read()
         if stdin == "html":
@@ -75,6 +77,7 @@ def main():
         json.dump(link_status_report, file)
 
 
+# Fonction pure
 def print_help():
     print("----------------------------------------------")
     print("Usage examples:")
@@ -99,7 +102,8 @@ def print_help():
     print("----------------------------------------------")
 
 
-def check_crawling_state(dict_arg):
+# Fonction pure
+def check_crawling_state(dict_arg: dict):
     # Gestion de la variable crawling_state
     try:
         if dict_arg['crawling'] == 'true' or dict_arg['crawling'] == 'True':
@@ -107,7 +111,7 @@ def check_crawling_state(dict_arg):
         elif dict_arg['crawling'] == 'false' or dict_arg['crawling'] == 'False':
             crawling_state = False
         else:
-            error_print("Quel est l'état du Crawling ? (True or False)")
+            crawling_state = True
     except KeyError:
         crawling_state = True
     return crawling_state
@@ -158,11 +162,20 @@ def scrape_and_crawl(input_page: str, file_path: str, link_status_report: dict =
     return checked_links, crawler.get_checked()
 
 
-def error_print(*args, **kwargs):
+# Fonction pure
+def error_print(*args, exception: Exception = None, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
     print_help()
+
+    if exception is not None:
+        print("Oups! There was an unexpected error... Here's the traceback:", file=sys.stderr)
+        raise exception
+
     sys.exit(1)
 
 
 if __name__ == '__main__':
-    main()
+    try:
+        main()
+    except Exception as e:
+        error_print(exception=e)

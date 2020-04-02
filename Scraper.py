@@ -35,7 +35,8 @@ class Scraper:
         return absolute_links
 
     # Fonction pure
-    def __match_unstructured_links__(self, html: str) -> list:
+    @staticmethod
+    def __match_unstructured_links__(html: str) -> list:
         """
         Find links not located in anchor tags
         :param html: HTML page in the form of a string
@@ -71,7 +72,8 @@ class LinkHTMLParser(h.HTMLParser):
             print("tag {} not recognized".format(tag))
 
     # Fonction pure
-    def __handle_anchor__(self, attrs) -> str:
+    @staticmethod
+    def __handle_anchor__(attrs) -> str:
         """
         Extracts link from anchor tag
         :param attrs:
@@ -82,5 +84,5 @@ class LinkHTMLParser(h.HTMLParser):
             else:
                 return attr[1]
 
-    def __handle_html__(self, attrs):
+    def __handle_html__(self, _):
         self.is_html_page = True
