@@ -78,6 +78,9 @@ Then run:
 ```
 sed -i 's/\r//' bash-win.sh
 ```
+# Linter
+
+Nous utilisons le linter qui vient avec pycharm
 
 ## Authors
 
