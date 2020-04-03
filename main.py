@@ -1,9 +1,11 @@
 import json
-import sys
 from urllib import parse
+
+import requests
 
 from Crawler import Crawler
 from Scraper import Scraper, NotHTMLException
+from error_handling import *
 
 
 # input stdin: Page HTML à Crawler OU liste de sites Web à vérifier OU liste de fichiers à vérifier
@@ -14,7 +16,6 @@ from Scraper import Scraper, NotHTMLException
 # - filelist
 # Argument url : url
 # Argument fichier local : file
-
 def main():
     url = None
     file = None
@@ -52,54 +53,75 @@ def main():
 
     # Scrape and crawl based on input type
     if stdin is not None:
-        stdinvalue = sys.stdin.read()
+        try:
+            stdinvalue = sys.stdin.read()
+        except Exception as ex:
+            error_print("Error reading from the stdin. Please verify your query. ", ex)
+
         if stdin == "html":
             scrape_and_crawl(stdinvalue, "", link_status_report, {})
         elif stdin == "filelist":
+            try:
+                stdinvalue = json.loads(stdinvalue)
+            except Exception as ex:
+                error_print("Error loading filelist. Check the path and if this is valid JSON. ", ex)
+
             all_checked_links = {}
-            stdinvalue = json.loads(stdinvalue)
             for file in stdinvalue:
-                with open(file, 'r') as f:
-                    scrape_and_crawl(f.read(), file, link_status_report, all_checked_links, is_local_file=True)
+                try:
+                    with open(file, 'r') as f:
+                        scrape_and_crawl(f.read(), file, link_status_report, all_checked_links, is_local_file=True)
+                except (IOError, OSError) as ex:
+                    error_print("Skipping {}, moving on to the next because there was an error opening/reading "
+                                "given file. ".format(file), ex, stop_script=False)
         elif stdin == "urllist":
-            stdinvalue = json.loads(stdinvalue)
+            try:
+                stdinvalue = json.loads(stdinvalue)
+            except Exception as ex:
+                error_print("Error loading urllist. Check the path and if this is valid JSON. ", ex)
+
             all_checked_links = {}
             for url in stdinvalue:
-                recursive_check_and_crawl(url, link_status_report, all_checked_links, base_url=url,
-                                          crawling_state=crawling_state)
+                try:
+                    recursive_check_and_crawl(url, link_status_report, all_checked_links, base_url=url,
+                                              crawling_state=crawling_state)
+                except requests.exceptions.ConnectionError as ex:
+                    error_print("Skipping {}, moving on to the next because there was an error connecting to "
+                                "the supplied website. ".format(url), ex, stop_script=False)
+                except requests.exceptions.InvalidURL as ex:
+                    error_print("Skipping {}, moving on to the next because there was an invalid url "
+                                "supplied. ".format(url), ex, stop_script=False)
+                except requests.exceptions.InvalidSchema:
+                    error_print("Skipping {}, moving on to the next because there was an invalid schema "
+                                "for url. ".format(url), stop_script=False)
+                except requests.exceptions.MissingSchema as ex:
+                    # relative link with no base url
+                    error_print("Skipping {}, moving on to the next because there was is a missing "
+                                "schema. ".format(url),
+                                ex, stop_script=False)
+        else:
+            error_print("Invalid stdin value '{}', should be html|urllist|filelist".format(stdin))
     elif url is not None:
-        recursive_check_and_crawl(url, link_status_report, {}, base_url=url, crawling_state=crawling_state)
+        try:
+            recursive_check_and_crawl(url, link_status_report, {}, base_url=url, crawling_state=crawling_state)
+        except requests.exceptions.ConnectionError as e:
+            error_print("Error connecting to the supplied website. ", e)
+        except requests.exceptions.InvalidURL as e:
+            error_print("Invalid url supplied. ", e)
+        except requests.exceptions.InvalidSchema:
+            error_print("Invalid schema for url. ")
+        except requests.exceptions.MissingSchema as e:
+            # relative link with no base url
+            error_print("Missing schema. ", e)
     elif file is not None:
-        with open(file, 'r') as f:
-            scrape_and_crawl(f.read(), "", link_status_report, {}, is_local_file=True)
+        try:
+            with open(file, 'r') as f:
+                scrape_and_crawl(f.read(), "", link_status_report, {}, is_local_file=True)
+        except (IOError, OSError) as ex:
+            error_print("Error opening/reading given file. ", ex)
 
     with open('./link_status_report.json', 'w') as file:
         json.dump(link_status_report, file)
-
-
-# Fonction pure
-def print_help():
-    print("----------------------------------------------")
-    print("Usage examples:")
-    print("main.py url http://google.com")
-    print("main.py url http://google.com crawling false")
-    print("main.py file /path/to/file.html")
-    print("main.py stdin html|filelist|urllist:")
-    print("   echo [\\\"https://spacejam.com\\\"] | python main.py stdin urllist")
-    print("   echo [\\\"./tests/spacejam.html\\\"] | python main.py stdin filelist")
-    print("   python main.py stdin html < ./tests/spacejam.html")
-    print("----------------------------------------------")
-    print("Parameter details:")
-    print("help -> shows this message")
-    print("url -> string url")
-    print("file -> string path to a file")
-    print("stdin -> accepted values are:")
-    print("   html -> will tell the program to expect html in the stdin")
-    print("   filelist -> will tell the program expect a JSON array of file paths in the stdin")
-    print("   urllist -> will tell the program expect a JSON array of urls in the stdin")
-    print("!!!! NOTE: url, file, and stdin are mutually exclusive. You must only use one of them.")
-    print("crawling -> true (default) or false. (can be capitalized) To be used whenever the program reads URLs")
-    print("----------------------------------------------")
 
 
 # Fonction pure
@@ -111,6 +133,7 @@ def check_crawling_state(dict_arg: dict):
         elif dict_arg['crawling'] == 'false' or dict_arg['crawling'] == 'False':
             crawling_state = False
         else:
+            print("Warning: invalid value supplied for 'crawling', using default value (true)")
             crawling_state = True
     except KeyError:
         crawling_state = True
@@ -160,18 +183,6 @@ def scrape_and_crawl(input_page: str, file_path: str, link_status_report: dict =
     checked_links = crawler.get_responses()
     link_status_report[file_path] = checked_links
     return checked_links, crawler.get_checked()
-
-
-# Fonction pure
-def error_print(*args, exception: Exception = None, **kwargs):
-    print(*args, file=sys.stderr, **kwargs)
-    print_help()
-
-    if exception is not None:
-        print("Oups! There was an unexpected error... Here's the traceback:", file=sys.stderr)
-        raise exception
-
-    sys.exit(1)
 
 
 if __name__ == '__main__':
