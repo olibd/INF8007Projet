@@ -55,12 +55,30 @@ For mac and linux:
 ```
 bash.sh [-u] git_url [-p] port. You should execute this script within the project directory.
 ```
-For windows:
+For windows (car windows utilise different "line-ending"):
 ```
-bash_win.sh [-u] git_url [-p] port. You should execute this script within the project directory.
+bash-win.sh [-u] git_url [-p] port. You should execute this script within the project directory.
 ```
 Warning: bash script will call python using the 'python3' command. If your system uses an other command to call python 
 3 you need to change it in the script.
+
+#### Windows error handling
+
+If you still have issues with your line endings (you get this error:)
+
+```
+Usage: bash-win.sh [-u] git_url [-p] port. You should execute this script within the project directory.
+bash-win.sh: line 2: $'\r': command not found
+bash-win.sh: line 4: syntax error near unexpected token `$'in\r''
+bash-win.sh: line 4: `  case ${opt} in
+```
+
+Then run:
+
+```
+sed -i 's/\r//' bash-win.sh
+```
+
 ## Authors
 
 Olivier Brochu Dufour
