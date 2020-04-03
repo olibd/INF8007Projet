@@ -21,4 +21,4 @@ PORT=$port npm start &
 echo "sleeping for 5 seconds to give enough time for the webserver to start before crawling"
 sleep 5
 cd ../
-python main.py url http://localhost:$port
+python3 main.py url http://localhost:$port

@@ -22,7 +22,7 @@ Le format du rapport est comme suit:
 
 ### Installing & Prerequisites
 
-Vous devez installer la librairie requests
+Vous devez utiliser python 3 et vous devez installer la librairie requests
 ```
 pip install requests
 ```
@@ -31,10 +31,10 @@ pip install requests
 #### Main script usage
 ```
 Usage examples:
-main.py url http://google.com
-main.py url http://google.com crawling false
-main.py file /path/to/file.html
-main.py stdin html|filelist|urllist:
+python3 main.py url https://spacejam.com
+python3 main.py url https://spacejam.com crawling false
+python3 main.py file /path/to/file.html
+python3 main.py stdin html|filelist|urllist:
    echo [\"https://spacejam.com\"] | python main.py stdin urllist
    echo [\"./tests/spacejam.html\"] | python main.py stdin filelist
    python main.py stdin html < ./tests/spacejam.html
@@ -51,11 +51,16 @@ stdin -> accepted values are:
 crawling -> true (default) or false. (can be capitalized) To be used whenever the program reads URLs
 ```
 #### Bash Script Usage
-
+For mac and linux:
 ```
 bash.sh [-u] git_url [-p] port. You should execute this script within the project directory.
 ```
-
+For windows:
+```
+bash_win.sh [-u] git_url [-p] port. You should execute this script within the project directory.
+```
+Warning: bash script will call python using the 'python3' command. If your system uses an other command to call python 
+3 you need to change it in the script.
 ## Authors
 
 Olivier Brochu Dufour
